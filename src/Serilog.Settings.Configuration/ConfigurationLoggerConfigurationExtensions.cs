@@ -40,18 +40,21 @@ namespace Serilog
         /// <param name="configuration">A configuration object which contains a Serilog section.</param>
         /// <param name="dependencyContext">The dependency context from which sink/enricher packages can be located. If not supplied, the platform
         /// default will be used.</param>
+        /// <param name="useConfigurationForSinks">Use configuration object for sinks creating</param>
         /// <returns>An object allowing configuration to continue.</returns>
         public static LoggerConfiguration Configuration(
             this LoggerSettingsConfiguration settingConfiguration,
             IConfiguration configuration,
-            DependencyContext dependencyContext = null)
+            DependencyContext dependencyContext = null,
+            bool useConfigurationForSinks = false)
         {
             if (configuration == null) throw new ArgumentNullException(nameof(configuration));
 
             return settingConfiguration.Settings(
                 new ConfigurationReader(
                     configuration,
-                    dependencyContext ?? (Assembly.GetEntryAssembly() != null ? DependencyContext.Default : null)));
+                    dependencyContext ?? (Assembly.GetEntryAssembly() != null ? DependencyContext.Default : null),
+                    useConfigurationForSinks));
         }
 
         /// <summary>

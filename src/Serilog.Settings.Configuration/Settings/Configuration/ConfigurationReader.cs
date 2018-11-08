@@ -20,17 +20,19 @@ namespace Serilog.Settings.Configuration
         const string LevelSwitchNameRegex = @"^\$[A-Za-z]+[A-Za-z0-9]*$";
 
         static IConfiguration _configuration;
+        static bool _useConfigurationForSinks;
 
         readonly IConfigurationSection _section;
         readonly DependencyContext _dependencyContext;
         readonly IReadOnlyCollection<Assembly> _configurationAssemblies;
 
-        public ConfigurationReader(IConfiguration configuration, DependencyContext dependencyContext)
+        public ConfigurationReader(IConfiguration configuration, DependencyContext dependencyContext, bool useConfigurationForSinks = false)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _section = configuration.GetSection(ConfigurationLoggerConfigurationExtensions.DefaultSectionName);
             _dependencyContext = dependencyContext;
             _configurationAssemblies = LoadConfigurationAssemblies();
+            _useConfigurationForSinks = useConfigurationForSinks;
         }
 
         // Generally the initial call should use IConfiguration rather than IConfigurationSection, otherwise
@@ -331,7 +333,7 @@ namespace Serilog.Settings.Configuration
                                 select directive.Key == null ? p.DefaultValue : directive.Value.ConvertTo(p.ParameterType, declaredLevelSwitches)).ToList();
 
                     var parm = methodInfo.GetParameters().FirstOrDefault(i => i.ParameterType == typeof(IConfiguration));
-                    if (parm != null && !parm.HasDefaultValue)
+                    if (parm != null && (!parm.HasDefaultValue || _useConfigurationForSinks))
                     {
                         if (_configuration is null)
                         {
